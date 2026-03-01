@@ -1,0 +1,128 @@
+/* Dashboard and Tabs */
+.dashboard-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-button.active {
+  color: #646cff;
+  border-bottom: 2px solid #646cff;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+/* Statements View */
+.statements-view {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.view-header h2 {
+  margin: 0;
+  color: #fff;
+}
+
+.refresh-button {
+  padding: 8px 16px;
+  background: rgba(100, 108, 255, 0.2);
+  color: #646cff;
+  border: 1px solid rgba(100, 108, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.refresh-button:hover {
+  background: rgba(100, 108, 255, 0.3);
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.statements-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #ddd;
+}
+
+.statements-table th {
+  text-align: left;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: 600;
+}
+
+.statements-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.statements-table tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+  .statements-view {
+    background: rgba(0, 0, 0, 0.03);
+  }
+  .statements-table th {
+    background: rgba(0, 0, 0, 0.05);
+    color: #213547;
+  }
+  .statements-table td {
+    color: #555;
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+  }
+  .tab-button.active {
+    color: #535bf2;
+    border-bottom-color: #535bf2;
+  }
+}
