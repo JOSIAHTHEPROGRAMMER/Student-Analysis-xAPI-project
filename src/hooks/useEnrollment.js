@@ -20,10 +20,17 @@ export const useEnrollment = () => {
 
     // Returns the enrollment for a given courseCode e.g. "comp3609"
     const getEnrollment = useCallback(
-        (courseCode) =>
-            enrollments.find(
-                (e) => e.course?.courseCode?.toLowerCase() === courseCode.toLowerCase()
-            ) ?? null,
+        (courseCode) => {
+            if (!courseCode) return null;
+
+            return (
+                enrollments.find(
+                    (e) =>
+                        e.course?.courseCode?.toLowerCase() ===
+                        courseCode.toLowerCase()
+                ) ?? null
+            );
+        },
         [enrollments]
     );
 

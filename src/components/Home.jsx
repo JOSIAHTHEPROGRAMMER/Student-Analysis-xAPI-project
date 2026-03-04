@@ -12,9 +12,13 @@ const STAGE_COLOURS = {
   Reflection: "bg-rose-500/10   text-rose-300   border-rose-500/20",
 };
 
+//console.log(XAPI_VERBS);
+
 const StageBadge = ({ stage }) => (
   <span
-    className={`inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium border ${STAGE_COLOURS[stage] ?? "bg-white/5 text-[#7b8399] border-white/10"}`}
+    className={`inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium border ${
+      STAGE_COLOURS[stage] ?? "bg-white/5 text-[#7b8399] border-white/10"
+    }`}
   >
     {stage}
   </span>
@@ -36,15 +40,21 @@ const Step = ({ number, title, children }) => (
 );
 
 const CourseCard = ({ course, enrollment }) => {
-  const verbs = XAPI_VERBS[course.courseCode.toLowerCase()] ?? [];
+  if (!course) return null;
+
+  const courseCode = course?.courseCode ?? "";
+  const courseKey = courseCode.toLowerCase();
+  const verbs = XAPI_VERBS[courseKey] ?? [];
   const [groups, setGroups] = useState([]);
 
   useEffect(() => {
+    if (!courseCode) return;
+
     api
-      .get(`/api/courses/${course.courseCode}/groups`)
+      .get(`/api/courses/${courseCode}/groups`)
       .then(({ data }) => setGroups(data.groups ?? []))
       .catch(() => setGroups([]));
-  }, [course.courseCode]);
+  }, [courseCode]);
 
   const enrolledGroupId = enrollment?.group?._id;
   const enrolledGroup = groups.find((g) => g._id === enrolledGroupId);
@@ -54,16 +64,22 @@ const CourseCard = ({ course, enrollment }) => {
     return acc;
   }, {});
 
+  const displayCode = courseCode ? courseCode.replace("COMP", "COMP ") : "";
+
+  const displayName = course?.name
+    ? (course.name.split(" - ")[1] ?? course.name)
+    : "";
+
   return (
     <div className="bg-[#111827] border border-white/8 rounded-xl p-6 flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <p className="text-[0.65rem] font-medium tracking-[0.12em] uppercase text-[#7b8399]">
-            {course.courseCode.replace("COMP", "COMP ")}
+            {displayCode}
           </p>
           <p className="text-sm font-medium text-[#e8eaf0] leading-snug">
-            {course.name.split(" - ")[1] ?? course.name}
+            {displayName}
           </p>
         </div>
         {enrolledGroup ? (
@@ -83,7 +99,7 @@ const CourseCard = ({ course, enrollment }) => {
           Project
         </p>
         <p className="text-xs text-[#7b8399] leading-relaxed">
-          {course.project?.description}
+          {course?.project?.description ?? ""}
         </p>
       </div>
 
@@ -155,7 +171,10 @@ const Home = ({ onNavigate }) => {
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
-    api.get("/api/courses").then(({ data }) => setCourses(data.courses ?? []));
+    api
+      .get("/api/courses")
+      .then(({ data }) => setCourses(data.courses ?? []))
+      .catch(() => setCourses([]));
   }, []);
 
   const hour = new Date().getHours();
@@ -179,7 +198,7 @@ const Home = ({ onNavigate }) => {
         <p className="text-sm text-[#7b8399] leading-relaxed max-w-xl mt-1">
           This portal lets you record your learning activity as xAPI statements
           throughout your project. Each statement you submit is stored here and
-          forwarded to the Learning Record Store for your us to review.
+          forwarded to the Learning Record Store for us to review.
         </p>
       </div>
 
@@ -231,7 +250,7 @@ const Home = ({ onNavigate }) => {
         <p className="text-sm text-[#7b8399] leading-relaxed">
           xAPI (Experience API) is a specification for recording learning
           experiences in a standardised format. Every statement follows an{" "}
-          <span className="text-[#e8eaf0]">Actor – Verb – Object</span>{" "}
+          <span className="text-[#e8eaf0]">Actor - Verb - Object</span>{" "}
           structure: you (the actor) performed an action (the verb) on something
           (the object - in this case, your project).
         </p>
@@ -278,7 +297,7 @@ const Home = ({ onNavigate }) => {
         </div>
         <p className="text-sm text-[#7b8399] leading-relaxed">
           Every verb is tagged with one of five pedagogical stages that describe
-          where that activity sits in the project lifecycle. Stages help your us
+          where that activity sits in the project lifecycle. Stages help us
           understand not just <em>what</em> you did, but <em>when</em> in the
           process you did it.
         </p>
@@ -364,9 +383,11 @@ const Home = ({ onNavigate }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {courses.map((course) => (
             <CourseCard
-              key={course.courseCode}
+              key={course?._id ?? course?.courseCode}
               course={course}
-              enrollment={getEnrollment(course.courseCode)}
+              enrollment={
+                course?.courseCode ? getEnrollment(course.courseCode) : null
+              }
             />
           ))}
         </div>

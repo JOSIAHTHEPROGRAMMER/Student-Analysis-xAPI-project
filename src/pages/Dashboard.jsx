@@ -86,7 +86,7 @@ const Dashboard = () => {
         ))}
       </nav>
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-8 py-8">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-8 py-8">
         {activeTab === "home" && <Home onNavigate={setActiveTab} />}
         {activeTab === "create" && <StatementBuilder />}
         {activeTab === "view" && <StatementsView />}
