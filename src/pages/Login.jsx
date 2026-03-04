@@ -185,7 +185,7 @@ const Login = () => {
           {/* Header */}
           <header className="mb-7">
             <p className="text-[0.68rem] tracking-[0.15em] uppercase text-gold mb-2">
-              Learning Platform
+              Learning Analytics
             </p>
             <h2 className="font-display text-[1.85rem] font-normal text-[#e8eaf0] mb-1">
               {mode === "login" ? "Welcome back." : "Create account."}
