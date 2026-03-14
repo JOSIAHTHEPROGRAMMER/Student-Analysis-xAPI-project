@@ -40,22 +40,6 @@ const FieldLabel = ({ htmlFor, children }) => (
   </label>
 );
 
-const STAGE_COLOURS = {
-  Planning: "bg-blue-500/10   text-blue-300   border-blue-500/20",
-  Exploration: "bg-purple-500/10 text-purple-300 border-purple-500/20",
-  Construction: "bg-amber-500/10  text-amber-300  border-amber-500/20",
-  Testing: "bg-green-500/10  text-green-300  border-green-500/20",
-  Reflection: "bg-rose-500/10   text-rose-300   border-rose-500/20",
-};
-
-const StageBadge = ({ stage }) => (
-  <span
-    className={`inline-flex items-center px-2.5 py-0.5 rounded text-[0.65rem] font-medium border ${STAGE_COLOURS[stage] ?? "bg-white/5 text-[#7b8399] border-white/10"}`}
-  >
-    {stage}
-  </span>
-);
-
 // New group modal
 const NewGroupModal = ({ courseCode, courseName, onCreated, onCancel }) => {
   const [name, setName] = useState("");
@@ -558,12 +542,9 @@ const StatementBuilder = () => {
             <Chevron />
           </div>
           {verbObj && (
-            <div className="flex items-start gap-2 mt-1">
-              <StageBadge stage={verbObj.stage} />
-              <p className="text-xs text-[#7b8399] leading-relaxed">
-                {verbObj.description}
-              </p>
-            </div>
+            <p className="text-xs text-[#c3cee9] font-bold leading-relaxed mt-1">
+              {verbObj.description}
+            </p>
           )}
         </div>
 
