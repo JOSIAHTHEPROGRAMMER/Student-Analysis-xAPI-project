@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useXAPI } from "../hooks/useXAPI";
 import { useEnrollment } from "../hooks/useEnrollment";
-import { XAPI_VERBS, STEPS, BASE_URI } from "../utils/constants";
+import { XAPI_VERBS, STEPS, BASE_URI, STAGES } from "../utils/constants";
 import api from "../configs/api";
 
 const NEW_GROUP_SENTINEL = "__new__";
@@ -463,6 +463,7 @@ const StatementBuilder = () => {
         )}
 
         {/* Pedagogical Stage */}
+
         <div className="flex flex-col gap-2">
           <FieldLabel htmlFor="stage">Pedagogical Stage</FieldLabel>
           <div className="relative">
@@ -478,20 +479,19 @@ const StatementBuilder = () => {
               <option value="" disabled>
                 Select a stage
               </option>
-              {[
-                "Planning",
-                "Exploration",
-                "Construction",
-                "Testing",
-                "Reflection",
-              ].map((s) => (
-                <option key={s} value={s} className="bg-[#111827]">
-                  {s}
+              {STAGES.map((s) => (
+                <option key={s.id} value={s.id} className="bg-[#111827]">
+                  {s.label}
                 </option>
               ))}
             </select>
             <Chevron />
           </div>
+          {selectedStage && (
+            <p className="text-xs text-[#c3cee9] font-bold leading-relaxed mt-1">
+              {STAGES.find((s) => s.id === selectedStage)?.description}
+            </p>
+          )}
         </div>
 
         {/* Project Step */}
@@ -518,6 +518,11 @@ const StatementBuilder = () => {
             </select>
             <Chevron />
           </div>
+          {selectedStep && (
+            <p className="text-xs text-[#c3cee9] font-bold leading-relaxed mt-1">
+              {steps.find((s) => s.id === selectedStep)?.description}
+            </p>
+          )}
         </div>
 
         {/* Verb */}

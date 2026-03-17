@@ -1,29 +1,28 @@
 export const BASE_URI = "https://student-analytics-app.vercel.app/xapi";
 
 export const STAGES = [
-    { id: "Planning", label: "Planning" },
-    { id: "Exploration", label: "Exploration" },
-    { id: "Construction", label: "Construction" },
-    { id: "Testing", label: "Testing" },
-    { id: "Reflection", label: "Reflection" },
+    { id: "Planning", label: "Planning", description: "Define goals, scope, and resources needed before work begins." },
+    { id: "Exploration", label: "Exploration", description: "Research and investigate ideas, technologies, and approaches." },
+    { id: "Construction", label: "Construction", description: "Build and implement the core components of the project." },
+    { id: "Testing", label: "Testing", description: "Verify functionality, identify bugs, and validate requirements." },
+    { id: "Reflection", label: "Reflection", description: "Review outcomes, document lessons learned, and assess overall progress." },
 ];
 
-// Course-specific project steps, second layer of the 3-layer hierarchy
 export const STEPS = {
     comp3609: [
-        { id: "Game Concept Design", label: "Game Concept Design" },
-        { id: "Mechanics Implementation", label: "Mechanics Implementation" },
-        { id: "Asset Integration", label: "Asset Integration" },
-        { id: "Playtesting", label: "Playtesting" },
-        { id: "Balancing & Refinement", label: "Balancing & Refinement" },
+        { id: "Game Concept Design", label: "Game Concept Design", description: "Define the game's genre, mechanics, story, and overall vision." },
+        { id: "Mechanics Implementation", label: "Mechanics Implementation", description: "Code and integrate the core gameplay systems and rules." },
+        { id: "Asset Integration", label: "Asset Integration", description: "Import and connect art, audio, and other media into the game engine." },
+        { id: "Playtesting", label: "Playtesting", description: "Run test sessions to evaluate fun, difficulty, and usability." },
+        { id: "Balancing & Refinement", label: "Balancing & Refinement", description: "Tune gameplay values and polish the experience based on feedback." },
     ],
     comp3610: [
-        { id: "Problem Framing", label: "Problem Framing" },
-        { id: "Data Acquisition", label: "Data Acquisition" },
-        { id: "Data Preparation", label: "Data Preparation" },
-        { id: "Analysis / Modelling", label: "Analysis / Modelling" },
-        { id: "Evaluation & Interpretation", label: "Evaluation & Interpretation" },
-        { id: "Communication of Results", label: "Communication of Results" },
+        { id: "Problem Framing", label: "Problem Framing", description: "Clearly define the research question, objectives, and success criteria." },
+        { id: "Data Acquisition", label: "Data Acquisition", description: "Collect or source the datasets required for analysis." },
+        { id: "Data Preparation", label: "Data Preparation", description: "Clean, transform, and structure data for modelling or analysis." },
+        { id: "Analysis / Modelling", label: "Analysis / Modelling", description: "Apply statistical or machine learning techniques to derive insights." },
+        { id: "Evaluation & Interpretation", label: "Evaluation & Interpretation", description: "Assess model performance and interpret results in context." },
+        { id: "Communication of Results", label: "Communication of Results", description: "Present findings clearly through reports, visualisations, or presentations." },
     ],
 };
 
