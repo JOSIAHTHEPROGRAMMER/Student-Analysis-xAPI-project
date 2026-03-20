@@ -12,11 +12,8 @@ const STATS = [
 ];
 
 const EMPTY_FORM = {
-  username: "",
   identifier: "",
-  email: "",
   password: "",
-  confirmPassword: "",
 };
 
 const Label = ({ htmlFor, children }) => (
@@ -43,7 +40,6 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState("login");
   const [form, setForm] = useState(EMPTY_FORM);
   const [isLoading, setIsLoading] = useState(false);
   const [focused, setFocused] = useState(null);
@@ -53,47 +49,19 @@ const Login = () => {
   const focus = (name) => () => setFocused(name);
   const blur = () => setFocused(null);
 
-  const switchMode = (next) => {
-    setMode(next);
-    setForm(EMPTY_FORM);
-    setFocused(null);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (mode === "register") {
-      if (form.password !== form.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-      if (form.password.length < 6) {
-        toast.error("Password must be at least 6 characters");
-        return;
-      }
-    }
-
     setIsLoading(true);
     try {
-      const endpoint =
-        mode === "login" ? "/api/user/login" : "/api/user/register";
-
-      // Login sends identifier (email or username), register sends separate fields
-      const payload =
-        mode === "login"
-          ? { identifier: form.identifier, password: form.password }
-          : {
-              username: form.username,
-              email: form.email,
-              password: form.password,
-            };
-      // group is NOT sent - it belongs to enrollments, not the user account
-
-      const { data } = await api.post(endpoint, payload);
+      const { data } = await api.post("/api/user/login", {
+        identifier: form.identifier,
+        password: form.password,
+      });
 
       if (data.token) localStorage.setItem("token", data.token);
       dispatch(login(data.user));
-      toast.success(mode === "login" ? "Welcome back." : "Account created!");
+      toast.success("Welcome back.");
       navigate("/dashboard");
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
@@ -167,36 +135,16 @@ const Login = () => {
       {/* Right panel */}
       <main className="flex-1 flex items-center justify-center p-6 relative z-10">
         <div className="w-full max-w-105 bg-[#111827] border border-white/8 rounded-2xl p-10 animate-[fadeUp_0.45s_cubic-bezier(0.22,1,0.36,1)_both]">
-          {/* Mode toggle */}
-          <div className="flex gap-1 p-1 bg-white/4 rounded-lg mb-8">
-            {["login", "register"].map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => switchMode(m)}
-                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                  mode === m
-                    ? "bg-[#1a2235] text-[#e8eaf0] shadow-sm"
-                    : "text-[#7b8399] hover:text-[#7b8399]"
-                }`}
-              >
-                {m === "login" ? "Sign In" : "Register"}
-              </button>
-            ))}
-          </div>
-
           {/* Header */}
           <header className="mb-7">
             <p className="text-[0.68rem] tracking-[0.15em] uppercase text-gold mb-2">
               Learning Analytics
             </p>
             <h2 className="font-display text-[1.85rem] font-normal text-[#e8eaf0] mb-1">
-              {mode === "login" ? "Welcome back." : "Create account."}
+              Welcome back.
             </h2>
             <p className="text-sm text-[#7b8399]">
-              {mode === "login"
-                ? "Sign in with your email or username"
-                : "You'll be assigned to course groups by your lecturer"}
+              Sign in with your email or username
             </p>
           </header>
 
@@ -205,62 +153,23 @@ const Login = () => {
             className="flex flex-col gap-5"
             noValidate
           >
-            {/* Username - register only */}
-            {mode === "register" && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  value={form.username}
-                  onChange={handleChange}
-                  onFocus={focus("username")}
-                  onBlur={blur}
-                  placeholder="john.doe"
-                  required
-                  isFocused={focused === "username"}
-                  autoComplete="username"
-                />
-              </div>
-            )}
-
-            {/* Identifier (login) or Email (register) */}
-            {mode === "login" ? (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="identifier">Email or Username</Label>
-                <Input
-                  id="identifier"
-                  name="identifier"
-                  type="text"
-                  value={form.identifier}
-                  onChange={handleChange}
-                  onFocus={focus("identifier")}
-                  onBlur={blur}
-                  placeholder="john@example.com or john.doe"
-                  required
-                  isFocused={focused === "identifier"}
-                  autoComplete="username"
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  onFocus={focus("email")}
-                  onBlur={blur}
-                  placeholder="john@example.com"
-                  required
-                  isFocused={focused === "email"}
-                  autoComplete="email"
-                />
-              </div>
-            )}
+            {/* Identifier */}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="identifier">Email or Username</Label>
+              <Input
+                id="identifier"
+                name="identifier"
+                type="text"
+                value={form.identifier}
+                onChange={handleChange}
+                onFocus={focus("identifier")}
+                onBlur={blur}
+                placeholder="john@example.com or john.doe"
+                required
+                isFocused={focused === "identifier"}
+                autoComplete="username"
+              />
+            </div>
 
             {/* Password */}
             <div className="flex flex-col gap-2">
@@ -276,31 +185,9 @@ const Login = () => {
                 placeholder="••••••••"
                 required
                 isFocused={focused === "password"}
-                autoComplete={
-                  mode === "login" ? "current-password" : "new-password"
-                }
+                autoComplete="current-password"
               />
             </div>
-
-            {/* Confirm password - register only */}
-            {mode === "register" && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  onFocus={focus("confirmPassword")}
-                  onBlur={blur}
-                  placeholder="••••••••"
-                  required
-                  isFocused={focused === "confirmPassword"}
-                  autoComplete="new-password"
-                />
-              </div>
-            )}
 
             <button
               type="submit"
@@ -311,7 +198,7 @@ const Login = () => {
                 <span className="w-4 h-4 border-2 border-navy/25 border-t-navy rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>{mode === "login" ? "Sign In" : "Create Account"}</span>
+                  <span>Sign In</span>
                   <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
                     <path
                       d="M3 8h10M9 4l4 4-4 4"
