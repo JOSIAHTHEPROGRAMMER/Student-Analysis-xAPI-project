@@ -1,132 +1,217 @@
 import { v4 as uuidv4 } from "uuid";
 import { BASE_URI } from "./constants";
 
-
-
-// Activity types
-const ACTIVITY_TYPES = {
-    project: `${BASE_URI}/activity-types/project`,
-    group: `${BASE_URI}/activity-types/group`,
-};
-
-// Extension URIs for pedagogical metadata attached to every project statement.
+// Extension URIs 
 const EXT_STAGE = `${BASE_URI}/extensions/pedagogical-stage`;
-const EXT_STEP = `${BASE_URI}/extensions/problem-step`;
-// EXT_SCENARIO kept here for easy re-enable if needed
-// const EXT_SCENARIO = `${BASE_URI}/extensions/learner-scenario`;
+const EXT_STEP  = `${BASE_URI}/extensions/problem-step`;
+
+//  Activity types
+export const ACTIVITY_TYPES = {
+    project:             `${BASE_URI}/activity-types/project`,
+    group:               `${BASE_URI}/activity-types/group`,
+    course:              `${BASE_URI}/activity-types/course`,
+    // Artifact types — one per project step
+    "design-document":   `${BASE_URI}/activity-types/design-document`,
+    "code":              `${BASE_URI}/activity-types/code`,
+    "asset":             `${BASE_URI}/activity-types/asset`,
+    "test-session":      `${BASE_URI}/activity-types/test-session`,
+    "refinement":        `${BASE_URI}/activity-types/refinement`,
+    "problem-statement": `${BASE_URI}/activity-types/problem-statement`,
+    "dataset":           `${BASE_URI}/activity-types/dataset`,
+    "data-pipeline":     `${BASE_URI}/activity-types/data-pipeline`,
+    "analysis":          `${BASE_URI}/activity-types/analysis`,
+    "evaluation":        `${BASE_URI}/activity-types/evaluation`,
+    "report":            `${BASE_URI}/activity-types/report`,
+    "project-work":      `${BASE_URI}/activity-types/project-work`,
+};
+
+// Maps each project step label to an artifact activity-type key.
+const STEP_TO_ARTIFACT_TYPE = {
+    // COMP 3609 — Game Programming
+    "Game Concept Design":      "design-document",
+    "Mechanics Implementation": "code",
+    "Asset Integration":        "asset",
+    "Playtesting":              "test-session",
+    "Balancing & Refinement":   "refinement",
+    // COMP 3610 — Big Data Analytics
+    "Problem Framing":             "problem-statement",
+    "Data Acquisition":            "dataset",
+    "Data Preparation":            "data-pipeline",
+    "Analysis / Modelling":        "analysis",
+    "Evaluation & Interpretation": "evaluation",
+    "Communication of Results":    "report",
+};
+
+// Context activity builders 
 
 /**
- * Builds an Activity object representing a course project.
- * Uses the project URI from COURSES in constants.js if passed through,
- * otherwise falls back to a derived URI from the course code.
+ * object — the specific artifact being acted upon this session.
+ * URI: <BASE_URI>/projects/<courseCode>/<groupSlug>/<artifactType>/<uuid>
  */
-export const getCourseProjectActivity = (courseCode, courseName, projectUri, projectDescription) => {
-    const code = courseCode?.toLowerCase();
+const buildArtifactObject = ({ courseCode, groupSlug, problemStep, artifactName, artifactId, description }) => {
+    const code         = courseCode?.toLowerCase().replace(/\s+/g, "-");
+    const slug         = groupSlug?.toLowerCase().replace(/\s+/g, "-");
+    const artifactType = STEP_TO_ARTIFACT_TYPE[problemStep] ?? "project-work";
+    const id           = artifactId ?? uuidv4();
+
     return {
         objectType: "Activity",
-        id: projectUri || `${BASE_URI}/activities/${code}/project`,
+        id: `${BASE_URI}/projects/${code}/${slug}/${artifactType}/${id}`,
         definition: {
-            type: ACTIVITY_TYPES.project,
-            name: { "en-US": courseName || courseCode || "Course Project" },
-            description: { "en-US": projectDescription || `${courseCode} course project` },
+            type:        ACTIVITY_TYPES[artifactType],
+            name:        { "en-US": artifactName || problemStep || "Project Artifact" },
+            description: { "en-US": description  || `${artifactName || problemStep} created during ${courseCode} project work` },
         },
     };
 };
 
 /**
- * Builds a grouping Activity for context.contextActivities.
- * Uses _id (MongoDB) with a fallback to id for normalised shapes.
+ * context.parent — the group's project instance.
+ * URI: <BASE_URI>/projects/<courseCode>/<groupSlug>
  */
-export const getGroupActivity = (groupId, groups) => {
-    const group = groups?.find((g) => (g._id || g.id) === groupId);
+const buildParentActivity = ({ courseCode, groupSlug, groupName, courseName }) => {
+    const code = courseCode?.toLowerCase().replace(/\s+/g, "-");
+    const slug = groupSlug?.toLowerCase().replace(/\s+/g, "-");
     return {
         objectType: "Activity",
-        id: `${BASE_URI}/activities/groups/${groupId}`,
+        id: `${BASE_URI}/projects/${code}/${slug}`,
         definition: {
-            type: ACTIVITY_TYPES.group,
-            name: { "en-US": group ? group.name : groupId },
-            description: { "en-US": `Learning group: ${group ? group.name : groupId}` },
+            name:        { "en-US": `${courseName ?? courseCode} Project - ${groupName}` },
+            description: { "en-US": `${courseName ?? courseCode} project instance for ${groupName}` },
         },
     };
 };
 
 /**
- * Builds a complete xAPI statement.
- *
- * Expected fields in `data` for a course (project) statement:
- *   customVerb, verbId, verbDisplay  - verb taken directly from XAPI_VERBS
- *   userId, email, username          - actor
- *   courseCode, courseName           - used to build the object activity
- *   activityId                       - project URI from COURSES (project.uri)
- *   projectDescription               - goes into object definition description
- *   stage                            - context extension (EXT_STAGE)
- *   problemStep                      - context extension (EXT_STEP)
- *   description                      - optional free-text context
- *   parent                           - context activity (the course itself)
- *   grouping, category               - additional context activities
- *   result                           - optional xAPI result block
- *   extensions                       - any additional context extensions
- *
- * `userData` - Redux auth user, fallback for userId/group.
- * `groups`   - full groups array from the course, used by getGroupActivity.
+ * context.grouping — the group itself.
+ * URI: <BASE_URI>/groups/<groupSlug>
  */
-export const buildStatement = ({ verb, data, userData, groups }) => {
+const buildGroupActivity = ({ groupSlug, groupName, courseCode, courseDescription }) => {
+    const slug = groupSlug?.toLowerCase().replace(/\s+/g, "-");
+    return {
+        objectType: "Activity",
+        id: `${BASE_URI}/groups/${slug}`,
+        definition: {
+            name:        { "en-US": groupName },
+            description: { "en-US": courseDescription
+                ? `${courseDescription} — ${groupName}`
+                : `${courseCode} project group: ${groupName}` },
+        },
+    };
+};
+
+/**
+ * context.category — the course.
+ * URI: <BASE_URI>/courses/<COURSE-CODE>
+ */
+const buildCourseActivity = ({ courseCode, courseName, courseDescription }) => {
+    const code = courseCode?.toUpperCase().replace(/\s+/g, "-");
+    return {
+        objectType: "Activity",
+        id: `${BASE_URI}/courses/${code}`,
+        definition: {
+            name:        { "en-US": courseCode },
+            description: { "en-US": courseDescription || courseName || courseCode },
+        },
+    };
+};
+
+// Main builder 
+
+/**
+ * Builds a complete xAPI statement in the new format.
+ *
+ * Required fields in `data`:
+ *   verbId, verbDisplay        — verb IRI + label (from XAPI_VERBS)
+ *   courseCode                 — e.g. "comp3609"
+ *   courseName                 — e.g. "COMP 3609 - Game Programming"
+ *   courseDescription          — used in category and grouping descriptions
+ *   groupId                    — MongoDB _id of the group
+ *   groupName                  — display name, e.g. "Group A"
+ *   groupSlug                  — URL-safe slug, e.g. "group-a" (from enrollment.group.slug)
+ *   problemStep                — drives the artifact type lookup + stored as extension
+ *   artifactName               — human label for the object activity
+ *   stage                      — pedagogical stage stored as extension
+ *
+ * Optional:
+ *   artifactId                 — stable UUID reused across edits; generated if omitted
+ *   description                — artifact description text
+ *   result                     — xAPI result block
+ *   extensions                 — any extra context extensions to merge in
+ *
+ * `userData` — Redux auth user (provides actor fallback values).
+ */
+export const buildStatement = ({ data, userData }) => {
     const homePage = window.location.origin;
 
-    // Actor
+    const groupName = data.groupName || "Unknown Group";
+    // Use the server-provided slug when available; derive from name as fallback.
+    const groupSlug = data.groupSlug || groupName.toLowerCase().replace(/\s+/g, "-");
+
+    // ── Actor ─────────────────────────────────────────────────────────────────
     const actor = {
         objectType: "Agent",
         account: {
             homePage,
-            name: data.userId || userData?.userId || data.email || "anonymous",
+            name: data.userId || userData?._id || data.email || "anonymous",
         },
         ...(data.username ? { name: data.username } : {}),
     };
 
-    // Verb - always passed directly from XAPI_VERBS via customVerb: true
-    const resolvedVerb = {
-        id: data.verbId,
+    // ── Verb ──────────────────────────────────────────────────────────────────
+    const verb = {
+        id:      data.verbId,
         display: { "en-US": data.verbDisplay },
     };
 
-    // Object - the course project activity
-    const object = getCourseProjectActivity(
-        data.courseCode,
-        data.courseName,
-        data.activityId,
-        data.projectDescription
-    );
+    // ── Object ────────────────────────────────────────────────────────────────
+    const object = buildArtifactObject({
+        courseCode:   data.courseCode,
+        groupSlug,
+        problemStep:  data.problemStep,
+        artifactName: data.artifactName,
+        artifactId:   data.artifactId,
+        description:  data.description,
+    });
 
-    // Context activities
-    const contextActivities = {};
-    if (userData?.group) {
-        contextActivities.grouping = [getGroupActivity(userData.group, groups)];
-    }
-    if (data.grouping) contextActivities.grouping = [data.grouping];
-    if (data.parent) contextActivities.parent = [data.parent];
-    if (data.category) contextActivities.category = [data.category];
-
-    // Context extensions
-    const extensions = { ...(data.extensions || {}) };
-    if (data.stage) extensions[EXT_STAGE] = data.stage;
-    if (data.problemStep) extensions[EXT_STEP] = data.problemStep;
-    // re-enable scenario by uncommenting:
-    // if (data.scenario) extensions[EXT_SCENARIO] = data.scenario;
-
-    const context = {
-        extensions,
-        ...(Object.keys(contextActivities).length ? { contextActivities } : {}),
+    // ── Context activities ────────────────────────────────────────────────────
+    const contextActivities = {
+        parent: [buildParentActivity({
+            courseCode:  data.courseCode,
+            groupSlug,
+            groupName,
+            courseName:  data.courseName,
+        })],
+        grouping: [buildGroupActivity({
+            groupSlug,
+            groupName,
+            courseCode:        data.courseCode,
+            courseDescription: data.courseDescription,
+        })],
+        category: [buildCourseActivity({
+            courseCode:        data.courseCode,
+            courseName:        data.courseName,
+            courseDescription: data.courseDescription,
+        })],
     };
 
-    // Statement
+    // ── Context extensions ────────────────────────────────────────────────────
+    const extensions = { ...(data.extensions || {}) };
+    if (data.stage)       extensions[EXT_STAGE] = data.stage;
+    if (data.problemStep) extensions[EXT_STEP]  = data.problemStep;
+
+    // ── Assemble ──────────────────────────────────────────────────────────────
     const statement = {
-        id: uuidv4(),
+        id:      uuidv4(),
         actor,
-        verb: resolvedVerb,
+        verb,
         object,
-        context,
+        context: {
+            contextActivities,
+            extensions,
+        },
         timestamp: new Date().toISOString(),
-        version: "1.0.3",
+        version:   "1.0.3",
     };
 
     if (data.result) statement.result = data.result;
